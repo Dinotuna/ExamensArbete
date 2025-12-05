@@ -6,10 +6,19 @@ import './App.css'
 function App() {
   const [count, setCount] = useState(0)
 
+  const startPitchDetection = () => {
+    navigator.mediaDevices.getUserMedia({audio: true})
+    .then((stream) => {
+    })
+    .catch((err) => {
+      console.log("Kunde inte få mikrofonen");
+    })
+  }
+
   return (
     <div>
 
-      <h1>Hello World!</h1>
+      <button onClick={startPitchDetection}>Fråga om mikrofon </button>
 
     </div>
   )
