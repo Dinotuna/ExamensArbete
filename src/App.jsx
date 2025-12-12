@@ -10,7 +10,22 @@ function App() {
   let audioData = new Float32Array(analyserNode.fftSize);
   let correlatedSignal = new Float32Array(analyserNode.fftSize);
   let localMaxima = new Array(10);
-  let frequencyDisplayElement = null
+  let frequencyDisplayElement = null;
+  let noteDisplayElement = null;
+  const noteStrings = [
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
+  ];
 
   const startPitchDetection = () => {
     navigator.mediaDevices
@@ -23,23 +38,36 @@ function App() {
         correlatedSignal = new Float32Array(analyserNode.fftSize);
 
         frequencyDisplayElement = document.querySelector("#frequency");
+        noteDisplayElement = document.querySelector("#note");
 
         setInterval(() => {
           analyserNode.getFloatTimeDomainData(audioData);
 
           let pitch = getAutocorrelatedPitch();
 
-
           if (frequencyDisplayElement) {
-            frequencyDisplayElement.innerHTML = pitch != null ? `${pitch}` : "0.0;"
+            frequencyDisplayElement.innerHTML =
+              pitch != null ? pitch.toFixed(0) : "0.0";
           }
-
+          if (noteDisplayElement) {
+            const note = pitch != null ? frequencyToNote(pitch) : ". . .";
+            noteDisplayElement.innerHTML = note;
+          }
         }, 300);
       })
       .catch((err) => {
         console.log("Kunde inte få mikrofonen");
       });
   };
+
+  function frequencyToNote(freq) {
+    if (!freq || freq <= 0) return "--";
+    const noteNumber = 12 * (Math.log2(freq / 440)) + 69;
+    const rounded = Math.round(noteNumber);
+    const noteName = noteStrings[(rounded + 120) % 12];
+    return `${noteName}`;
+  }
+
 
   function getAutocorrelatedPitch() {
     let maximaCount = 0;
@@ -64,21 +92,21 @@ function App() {
     if (maximaCount === 0) return null;
     if (maximaCount === 1) return audioCtx.sampleRate / localMaxima[0];
 
-
     let sumDiffs = 0;
     for (let i = 1; i < maximaCount; i++) {
       sumDiffs += localMaxima[i] - localMaxima[i - 1];
     }
     const meanLag = sumDiffs / (maximaCount - 1);
     if (meanLag <= 0) return null;
-    return audioCtx.sampleRate / meanLag;
-
+    let currentPitch = audioCtx.sampleRate / meanLag;
+    return currentPitch;
   }
 
   return (
     <div>
       <h1>Frekvens</h1>
       <h2 id="frequency">0.0</h2>
+      <h3 id="note">. . .</h3>
 
       <button onClick={startPitchDetection}>Fråga om mikrofon </button>
     </div>
