@@ -62,12 +62,11 @@ function App() {
 
   function frequencyToNote(freq) {
     if (!freq || freq <= 0) return "--";
-    const noteNumber = 12 * (Math.log2(freq / 440)) + 69;
+    const noteNumber = 12 * Math.log2(freq / 440) + 69;
     const rounded = Math.round(noteNumber);
     const noteName = noteStrings[(rounded + 120) % 12];
     return `${noteName}`;
   }
-
 
   function getAutocorrelatedPitch() {
     let maximaCount = 0;
@@ -104,11 +103,17 @@ function App() {
 
   return (
     <div>
-      <h1>Frekvens</h1>
-      <h2 id="frequency">0.0</h2>
-      <h3 id="note">. . .</h3>
+      <div>
+        <h1>Frekvens</h1>
+        <h2 id="frequency">0.0</h2>
+        <h3 id="note">. . .</h3>
+      </div>
 
       <button onClick={startPitchDetection}>Fråga om mikrofon </button>
+
+      <div>
+        <h1>Stämmare</h1>
+      </div>
     </div>
   );
 }
