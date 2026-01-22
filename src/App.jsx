@@ -113,6 +113,12 @@ function App() {
 
       <div>
         <h1>Stämmare</h1>
+        <button id="e1String">E</button>
+        <button id="aString">A</button>
+        <button id="dString">D</button>
+        <button id="gString">G</button>
+        <button id="bString">B</button>
+        <button id="e2String">E</button>
       </div>
     </div>
   );
