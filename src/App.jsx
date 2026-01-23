@@ -4,6 +4,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 
 function App() {
+  const [currentPitch, setCurrentPitch] = useState(null);
   let audioCtx = new window.AudioContext();
   let michropheSteam = null;
   let analyserNode = audioCtx.createAnalyser();
@@ -44,6 +45,7 @@ function App() {
           analyserNode.getFloatTimeDomainData(audioData);
 
           let pitch = getAutocorrelatedPitch();
+          setCurrentPitch(pitch);
 
           if (frequencyDisplayElement) {
             frequencyDisplayElement.innerHTML =
@@ -101,6 +103,12 @@ function App() {
     return currentPitch;
   }
 
+  function tuneGuitarString () {
+    console.log(currentPitch);
+  }
+
+  tuneGuitarString()
+
   return (
     <div>
       <div>
@@ -113,12 +121,12 @@ function App() {
 
       <div>
         <h1>Stämmare</h1>
-        <button id="e1String">E</button>
-        <button id="aString">A</button>
-        <button id="dString">D</button>
-        <button id="gString">G</button>
-        <button id="bString">B</button>
-        <button id="e2String">E</button>
+        <button onClick={tuneGuitarString} id="82">E</button>
+        <button id="110">A</button>
+        <button id="147">D</button>
+        <button id="196">G</button>
+        <button id="247">B</button>
+        <button id="330">E</button>
       </div>
     </div>
   );
