@@ -1,18 +1,9 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 
 function App() {
   const [currentPitch, setCurrentPitch] = useState(null);
-  let audioCtx = new window.AudioContext();
   let michropheSteam = null;
-  let analyserNode = audioCtx.createAnalyser();
-  let audioData = new Float32Array(analyserNode.fftSize);
-  let correlatedSignal = new Float32Array(analyserNode.fftSize);
-  let localMaxima = new Array(10);
-  let frequencyDisplayElement = null;
-  let noteDisplayElement = null;
   const noteStrings = [
     "C",
     "C#",
@@ -29,33 +20,37 @@ function App() {
   ];
 
   const startPitchDetection = () => {
+    let audioCtx = new window.AudioContext();
+    let analyserNode = audioCtx.createAnalyser();
+
+    analyserNode.fftSize = 8192;
+
+    let audioData = new Float32Array(analyserNode.fftSize);
+    let correlatedSignal = new Float32Array(analyserNode.fftSize);
+
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then((stream) => {
-        michropheSteam = audioCtx.createMediaStreamSource(stream);
-        michropheSteam.connect(analyserNode);
-
-        audioData = new Float32Array(analyserNode.fftSize);
-        correlatedSignal = new Float32Array(analyserNode.fftSize);
-
-        frequencyDisplayElement = document.querySelector("#frequency");
-        noteDisplayElement = document.querySelector("#note");
+        let michropheStream = audioCtx.createMediaStreamSource(stream);
+        michropheStream.connect(analyserNode);
+        let frequencyDisplayElement = document.querySelector("#frequency");
+        let noteDisplayElement = document.querySelector("#note");
 
         setInterval(() => {
           analyserNode.getFloatTimeDomainData(audioData);
 
-          let pitch = getAutocorrelatedPitch();
+          let pitch = getAutocorrelatedPitch(analyserNode, audioData, correlatedSignal, audioCtx);
           setCurrentPitch(pitch);
 
           if (frequencyDisplayElement) {
             frequencyDisplayElement.innerHTML =
-              pitch != null ? pitch.toFixed(0) : "0.0";
+              pitch != null ? pitch.toFixed(1) : "0.0";
           }
           if (noteDisplayElement) {
             const note = pitch != null ? frequencyToNote(pitch) : ". . .";
             noteDisplayElement.innerHTML = note;
           }
-        }, 300);
+        }, 100);
       })
       .catch((err) => {
         console.log("Kunde inte få mikrofonen");
@@ -70,44 +65,44 @@ function App() {
     return `${noteName}`;
   }
 
-  function getAutocorrelatedPitch() {
-    let maximaCount = 0;
+function getAutocorrelatedPitch(analyserNode, audioData, correlatedSignal, audioCtx) {
+
+    let rms = 0;
+    for (let i = 0; i < audioData.length; i++) rms += audioData[i] * audioData[i];
+    if (Math.sqrt(rms / audioData.length) < 0.01) return null;
+
 
     for (let l = 0; l < analyserNode.fftSize; l++) {
       correlatedSignal[l] = 0;
       for (let i = 0; i + l < analyserNode.fftSize; i++) {
         correlatedSignal[l] += audioData[i] * audioData[i + l];
       }
-      if (l > 1) {
-        if (
-          correlatedSignal[l - 2] - correlatedSignal[l - 1] < 0 &&
-          correlatedSignal[l - 1] - correlatedSignal[l] > 0
-        ) {
-          localMaxima[maximaCount] = l - 1;
-          maximaCount++;
-          if (maximaCount >= localMaxima.length) break;
-        }
+    }
+
+
+    let d = 0;
+    while (correlatedSignal[d] > correlatedSignal[d + 1]) d++;
+
+    let maxValue = -1;
+    let maxLag = -1;
+    for (let i = d; i < analyserNode.fftSize; i++) {
+      if (correlatedSignal[i] > maxValue) {
+        maxValue = correlatedSignal[i];
+        maxLag = i;
       }
     }
 
-    if (maximaCount === 0) return null;
-    if (maximaCount === 1) return audioCtx.sampleRate / localMaxima[0];
 
-    let sumDiffs = 0;
-    for (let i = 1; i < maximaCount; i++) {
-      sumDiffs += localMaxima[i] - localMaxima[i - 1];
+    if (maxLag !== -1) {
+      return audioCtx.sampleRate / maxLag;
     }
-    const meanLag = sumDiffs / (maximaCount - 1);
-    if (meanLag <= 0) return null;
-    let currentPitch = audioCtx.sampleRate / meanLag;
-    return currentPitch;
-  }
+    return null;
+    }
+  
 
-  function tuneGuitarString () {
+  function tuneGuitarString() {
     console.log(currentPitch);
   }
-
-  tuneGuitarString()
 
   return (
     <div>
