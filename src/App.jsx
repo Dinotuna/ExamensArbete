@@ -100,8 +100,8 @@ function getAutocorrelatedPitch(analyserNode, audioData, correlatedSignal, audio
     }
   
 
-  function tuneGuitarString() {
-    console.log(currentPitch);
+  function tuneGuitarString(targetFrequency) {
+    console.log(targetFrequency);
   }
 
   return (
@@ -116,12 +116,12 @@ function getAutocorrelatedPitch(analyserNode, audioData, correlatedSignal, audio
 
       <div>
         <h1>Stämmare</h1>
-        <button onClick={tuneGuitarString} id="82">E</button>
-        <button id="110">A</button>
-        <button id="147">D</button>
-        <button id="196">G</button>
-        <button id="247">B</button>
-        <button id="330">E</button>
+        <button onClick={() => tuneGuitarString(82)}>E</button>
+        <button onClick={() => tuneGuitarString(110)}>A</button>
+        <button onClick={() => tuneGuitarString(147)}>D</button>
+        <button onClick={() => tuneGuitarString(196)}>G</button>
+        <button onClick={() => tuneGuitarString(247)}>B</button>
+        <button onClick={() => tuneGuitarString(330)}>E</button>
       </div>
     </div>
   );
