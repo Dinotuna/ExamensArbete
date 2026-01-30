@@ -3,6 +3,8 @@ import "./App.css";
 
 function App() {
   const [currentPitch, setCurrentPitch] = useState(null);
+  const [targetPitch, setTargetPitch] = useState(null); 
+
   let michropheSteam = null;
   const noteStrings = [
     "C",
@@ -50,7 +52,7 @@ function App() {
             const note = pitch != null ? frequencyToNote(pitch) : ". . .";
             noteDisplayElement.innerHTML = note;
           }
-        }, 100);
+        }, 40);
       })
       .catch((err) => {
         console.log("Kunde inte få mikrofonen");
@@ -100,8 +102,16 @@ function getAutocorrelatedPitch(analyserNode, audioData, correlatedSignal, audio
     }
   
 
-  function tuneGuitarString(targetFrequency) {
-    console.log(targetFrequency);
+  function getTuningStatus() {
+    if (!targetPitch)  return "Välj en sträng";
+    if (!currentPitch) return "Spela en ton";
+
+    const difference = currentPitch - targetPitch;
+
+    if (Math.abs(difference) < 1) return "Strängen är stämd";
+    if (difference > 0) return `+ ${Math.round(difference)}`;
+    return `${Math.round(difference)}`;
+
   }
 
   return (
@@ -116,12 +126,13 @@ function getAutocorrelatedPitch(analyserNode, audioData, correlatedSignal, audio
 
       <div>
         <h1>Stämmare</h1>
-        <button onClick={() => tuneGuitarString(82)}>E</button>
-        <button onClick={() => tuneGuitarString(110)}>A</button>
-        <button onClick={() => tuneGuitarString(147)}>D</button>
-        <button onClick={() => tuneGuitarString(196)}>G</button>
-        <button onClick={() => tuneGuitarString(247)}>B</button>
-        <button onClick={() => tuneGuitarString(330)}>E</button>
+        <p id="tuningStatus">{getTuningStatus()}</p>
+        <button onClick={() => setTargetPitch(82.41)}>E</button>
+        <button onClick={() => setTargetPitch(110.00)}>A</button>
+        <button onClick={() => setTargetPitch(146.83)}>D</button>
+        <button onClick={() => setTargetPitch(196.00)}>G</button>
+        <button onClick={() => setTargetPitch(246.94)}>B</button>
+        <button onClick={() => setTargetPitch(329.63)}>E</button>
       </div>
     </div>
   );
